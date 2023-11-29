@@ -1,0 +1,25 @@
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+temp*
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Environments
+.env
+.env.local
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# User generated file
+interactive_history.json
+old/
