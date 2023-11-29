@@ -4,3 +4,4 @@ python-dotenv==1.0.0
 numpy==1.24.4
 pandas==2.0.3
 pandas-stubs==2.0.3.230814
+langchain==0.0.342
