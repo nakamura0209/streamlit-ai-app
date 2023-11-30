@@ -1,5 +1,6 @@
 from typing import Any, List, Union
 from urllib import response
+from altair import Stream
 from dotenv import load_dotenv
 from numpy import isin
 import openai
@@ -111,10 +112,11 @@ def main():
         st.chat_message(Role.UESR.value).markdown(user_input)
 
         with st.chat_message(Role.ASSISTANT.value):
-            st_callback = StreamlitCallbackHandler(st.container())
-            response = llm(st.session_state.messages, stream=True)
-            # st.markdown(response.content)
-            # response = llm(st.session_state.messages, callbacks=[st_callback])
+            with st.spinner("Generating ChatGPT answers..."):
+                st_callback = StreamlitCallbackHandler(st.container())
+                response = llm(st.session_state.messages, stream=True)
+                st.markdown(response.content)
+                # response = llm(st.session_state.messages, callbacks=[st_callback])
 
         st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore
 
