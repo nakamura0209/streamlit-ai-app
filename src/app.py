@@ -1,5 +1,6 @@
 import os
 from urllib import response
+from numpy import isin
 import openai
 import streamlit as st
 from langchain.chat_models import AzureChatOpenAI
@@ -34,13 +35,25 @@ def main():
     # ユーザ入力を監視
     if user_input := st.chat_input("Input Your Message..."):
         st.session_state.messages.append(HumanMessage(content=user_input))  # type: ignore //pylance誤検知のため
-        with st.spinner("Generating ChatGPT answers..."):
-            response = llm(st.session_state.messages)  # type: ignore //pylance誤検知のため
-        st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore //pylance誤検知のため
+        try:
+            with st.spinner("Generating ChatGPT answers..."):
+                response = llm(st.session_state.messages)  # type: ignore //pylance誤検知のため
+            st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore //pylance誤検知のため
+        except Exception as e:
+            err_content_message = "感覚が短すぎます。一定時間経過後、再度お試しください。"
+            st.session_state.messages.append(SystemMessage(content=err_content_message))
+            st.markdown(st.session_state.messages[-1].content)
+            return
 
     messages = st.session_state.get("messages", [])
-    for message in messages:
-        st.write(message)
+    if len(messages) > 1:
+        for message in messages:
+            if isinstance(message, AIMessage):
+                with st.chat_message("Assistant"):
+                    st.markdown(message.content)
+            elif isinstance(message, HumanMessage):
+                with st.chat_message("User"):
+                    st.markdown(message.content)
 
 
 if __name__ == "__main__":
