@@ -30,7 +30,7 @@ def create_converstations(
 
 def generate_ai_messages(
     history_messages: List[Union[SystemMessage, Any]], llm: AzureChatOpenAI
-) -> None:
+) -> boolean:
     try:
         with st.spinner("Generating ChatGPT answers..."):
             response = llm(history_messages)  # type: ignore //pylance誤検知のため
@@ -39,14 +39,14 @@ def generate_ai_messages(
     except openai.error.RateLimitError as e:  # type: ignore
         err_content_message = "感覚が短すぎます。一定時間経過後、再度お試しください。"
         st.session_state.messages.append(SystemMessage(content=err_content_message))
-        is_error = True
-        pass
+        return True
 
     except Exception as e:
         err_content_message = "想定外のエラーです。管理者に問い合わせてください。"
         st.session_state.messages.append(SystemMessage(content=err_content_message))
-        is_error = True
-        pass
+        return True
+
+    return False
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
     if user_input := st.chat_input("Input Your Message..."):
         st.session_state.messages.append(HumanMessage(content=user_input))  # type: ignore //pylance誤検知のため
         # 会話履歴をもとに回答生成開始
-        generate_ai_messages(st.session_state.messages, llm)
+        is_error = generate_ai_messages(st.session_state.messages, llm)
 
     messages = st.session_state.get("messages", [])
     if len(messages) > 1:
