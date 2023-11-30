@@ -39,6 +39,7 @@ def main():
             with st.spinner("Generating ChatGPT answers..."):
                 response = llm(st.session_state.messages)  # type: ignore //pylance誤検知のため
             st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore //pylance誤検知のため
+
         except Exception as e:
             err_content_message = "感覚が短すぎます。一定時間経過後、再度お試しください。"
             st.session_state.messages.append(SystemMessage(content=err_content_message))
