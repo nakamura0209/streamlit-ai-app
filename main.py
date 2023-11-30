@@ -11,6 +11,7 @@ from data_source.langchain.lang_chain_chat_model_factory import LangchainChatMod
 
 
 def main():
+    # .envを読み取る
     load_dotenv()
 
     st.set_page_config(page_title="Stream-AI-Chat", page_icon="🤖")
