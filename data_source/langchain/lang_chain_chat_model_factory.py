@@ -28,11 +28,16 @@ class LangchainChatModelFactory:
     @staticmethod
     def create_instance(temperature: float, model: Union[str, Any]) -> AzureChatOpenAI:
         config_key: str = "config"
+        """
+        NOTE:
+        mypyで指摘が入っているが、誤検知と思われる
+        継承元のChatOpenAIクラスにはプロパティとして指摘事項の要素を受け取る記載がされている
+        """
         return AzureChatOpenAI(
-            openai_api_base=MODELS[model][config_key]["base_url"],  # type: ignore //pylance誤検知のため
-            openai_api_version=MODELS[model][config_key]["api_version"],  # type: ignore //pylance誤検知のため
-            deployment_name=MODELS[model][config_key]["deployment_name"],  # type: ignore //pylance誤検知のため
-            openai_api_key=MODELS[model][config_key]["api_key"],  # type: ignore //pylance誤検知のため
+            openai_api_base=MODELS[model][config_key]["base_url"],
+            openai_api_version=MODELS[model][config_key]["api_version"],
+            deployment_name=MODELS[model][config_key]["deployment_name"],
+            openai_api_key=MODELS[model][config_key]["api_key"],
             openai_api_type=MODELS[model][config_key]["api_type"],
             model_version=MODELS[model][config_key]["model_version"],
             # tiktoken_model_name=os.environ.get("AZURE_OPENAI_TIKTOKEN_MODEL_NAME", "", ""),
