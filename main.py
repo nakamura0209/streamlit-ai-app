@@ -1,3 +1,4 @@
+import os
 from typing import Any, List, Union
 from urllib import response
 from altair import Stream
@@ -9,7 +10,10 @@ from langchain.callbacks import StreamlitCallbackHandler
 from langchain.chat_models import AzureChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
 
-from data_source.langchain.lang_chain_chat_model_factory import LangchainChatModelFactory
+from data_source.langchain.lang_chain_chat_model_factory import (
+    LangchainChatModelFactory,
+    ModelParameters,
+)
 from data_source.openai_data_source import MODELS, Role
 
 
@@ -52,8 +56,27 @@ def generate_ai_messages(
     return False
 
 
-def select_model(model: Union[str, Any], temperature: float) -> AzureChatOpenAI:
-    llm = LangchainChatModelFactory.create_instance(temperature, model)
+def select_model(model: Union[str, Any], temperature: float) -> ModelParameters:
+    # モデルの切り替え
+    print(model)
+    st.session_state["openai_model"] = MODELS[model]["config"]["model_version"]
+
+    # OpenAI初期設定
+    openai.api_type = MODELS[model]["config"]["api_type"]
+    print(openai.api_type)
+    openai.api_base = MODELS[model]["config"]["base_url"]
+    openai.api_version = MODELS[model]["config"]["api_version"]
+    openai.api_key = MODELS[model]["config"]["api_key"]
+
+    # チャット用パラメータを付与したインスタンスを生成
+    llm = ModelParameters(
+        max_tokens=MODELS[model]["parameter"]["max_tokens"],
+        temperature=temperature,
+        top_p=MODELS[model]["parameter"]["top_p"],
+        frequency_penalty=MODELS[model]["parameter"]["frequency_penalty"],
+        presence_penalty=MODELS[model]["parameter"]["presence_penalty"],
+        deployment_name=MODELS[model]["config"]["deployment_name"],
+    )
 
     return llm
 
@@ -63,15 +86,13 @@ def init_message() -> None:
     if clear_button:
         st.info("Conversation history deleted.")
     if clear_button or "messages" not in st.session_state:
-        st.session_state.messages = [SystemMessage(content="You are a helphul assginment.")]
+        st.session_state.messages = []
         st.session_state.costs = []
 
 
 def main():
     # .envを読み取る
     load_dotenv()
-    # エラー判断フラグ初期化
-    is_error = False
 
     # ページの基本構成
     ## ページタイトルとヘッダの設定
@@ -90,35 +111,45 @@ def main():
     # 会話履歴の削除(clearボタンが押された場合)
     init_message()
 
-    ## コスト表示
-    st.sidebar.markdown("## Costs")
-    st.sidebar.markdown("**Total Cost**")
-    for i in range(3):
-        st.sidebar.markdown(f"- ${i+0.01}")
-
     # チャット履歴の初期化
-    if "messages" not in st.session_state:
-        st.session_state.messages = [SystemMessage(content="")]
+    if not st.session_state["messages"]:
+        st.session_state.messages = [{"role": Role.SYSTEM.value, "content": ""}]
+    print(st.session_state)
 
-    messages = st.session_state.get("messages", [])
-
-    # 会話の描画
-    create_converstations(messages, is_error)
+    # 履歴も含めた会話の生成
+    # create_converstations(st.session_state.messages, is_error)
 
     # ユーザ入力を監視
     user_input = st.chat_input("Input Your Message...")
     if user_input:
-        st.session_state.messages.append(HumanMessage(content=user_input))  # type: ignore
+        st.session_state.messages.append({"role": Role.UESR.value, "content": user_input})  # type: ignore
         st.chat_message(Role.UESR.value).markdown(user_input)
 
+        # TODO: ここをストリーミングで実現したい
         with st.chat_message(Role.ASSISTANT.value):
-            with st.spinner("Generating ChatGPT answers..."):
-                st_callback = StreamlitCallbackHandler(st.container())
-                response = llm(st.session_state.messages, stream=True)
-                st.markdown(response.content)
-                # response = llm(st.session_state.messages, callbacks=[st_callback])
+            message_placeholder = st.empty()  # 一時的なプレースホルダーを作成
+            full_response = ""
+            for response in openai.ChatCompletion.create(
+                engine="openai-test-model",
+                # model=st.session_state["openai_model"],
+                messages=[
+                    {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+                ],
+                temperature=0.7,
+                max_tokens=800,
+                top_p=0.95,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stream=True,
+                stop=None,
+            ):
+                if response.choices:
+                    full_response += response.choices[0].delta.get("content", "")
+                    message_placeholder.markdown(full_response + "▌")  # レスポンスの途中結果を表示
+            message_placeholder.markdown(full_response)  # 最終レスポンスを表示
 
-        st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore
+        st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": full_response})
+        print(st.session_state.messages)
 
         # 会話履歴をもとに回答生成開始
         # is_error = generate_ai_messages(st.session_state.messages, llm)
