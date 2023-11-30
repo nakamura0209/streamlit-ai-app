@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from numpy import isin
 import openai
 import streamlit as st
+from langchain.callbacks import StreamlitCallbackHandler
 from langchain.chat_models import AzureChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
 
@@ -98,19 +99,27 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = [SystemMessage(content="")]
 
-    # ユーザ入力を監視
-    if user_input := st.chat_input("Input Your Message..."):
-        st.session_state.messages.append(HumanMessage(content=user_input))  # type: ignore
-        # 会話履歴をもとに回答生成開始
-        is_error = generate_ai_messages(st.session_state.messages, llm)
-
     messages = st.session_state.get("messages", [])
-    if len(messages) > 1:
-        # 会話の描画
-        create_converstations(messages, is_error)
 
-    # どのモデルが選択されているかを表示
-    st.info(f"{model} is selected.")
+    # 会話の描画
+    create_converstations(messages, is_error)
+
+    # ユーザ入力を監視
+    user_input = st.chat_input("Input Your Message...")
+    if user_input:
+        st.session_state.messages.append(HumanMessage(content=user_input))  # type: ignore
+        st.chat_message(Role.UESR.value).markdown(user_input)
+
+        with st.chat_message(Role.ASSISTANT.value):
+            st_callback = StreamlitCallbackHandler(st.container())
+            response = llm(st.session_state.messages)
+            st.markdown(response.content)
+            # response = llm(st.session_state.messages, callbacks=[st_callback])
+
+        st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore
+
+        # 会話履歴をもとに回答生成開始
+        # is_error = generate_ai_messages(st.session_state.messages, llm)
 
 
 if __name__ == "__main__":
