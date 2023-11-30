@@ -7,6 +7,16 @@ class AbstractConversations(ABC):
         return NotImplementedError()
 
 
-class Conversations(AbstractConversations):
-    def build_message(self, history_messages):
-        print("test")
+class AIMessage:
+    def __init__(self, content):
+        self.content = content
+
+
+class HumanMessage:
+    def __init__(self, content):
+        self.content = content
+
+
+class SystemMessage:
+    def __init__(self, content):
+        self.content = content

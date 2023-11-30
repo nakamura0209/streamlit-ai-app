@@ -24,6 +24,6 @@ MODELS = {
 
 
 class Role(Enum):
-    UESR = "user"
-    ASSISTANT = "assistant"
-    SYSTEM = "system"
+    UESR = "User"
+    ASSISTANT = "Assistant"
+    SYSTEM = "System"
