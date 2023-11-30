@@ -1,6 +1,5 @@
 from typing import Any, List, Union
 from urllib import response
-from xmlrpc.client import boolean
 from dotenv import load_dotenv
 from numpy import isin
 import openai
@@ -13,7 +12,7 @@ from data_source.openai_data_source import MODELS, Role
 
 
 def create_converstations(
-    messages: List[Union[HumanMessage, AIMessage, SystemMessage]], is_error: boolean
+    messages: List[Union[HumanMessage, AIMessage, SystemMessage]], is_error: bool
 ) -> None:
     # 会話の履歴も含めてやり取りを描画
     for message in messages:
