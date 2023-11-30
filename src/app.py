@@ -24,6 +24,10 @@ def main():
     st.set_page_config(page_title="Stream-AI-Chat", page_icon="🤖")
     st.header("Stream-AI-Chat")
 
+    # チャット履歴の初期化
+    if "messages" not in st.session_state:
+        st.session_state.messages = [SystemMessage(content="")]
+
     if user_input := st.chat_input("Input Your Message..."):
         # なにか入力されればここが実行される
         st.write(user_input)
