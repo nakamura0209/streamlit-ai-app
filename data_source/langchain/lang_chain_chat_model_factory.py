@@ -26,8 +26,7 @@ class LangchainChatModelFactory:
     def create_instance():
         return AzureChatOpenAI(
             openai_api_base=os.environ.get("OPENAI_BASE_URL", ""),  # type: ignore //pylance誤検知のため
-            # openai_api_version=os.environ.get("OPENAI_API_VERSION", ""),  # type: ignore //pylance誤検知のため
-            openai_api_version="2023-07-01-preview",  # type: ignore //pylance誤検知のため
+            openai_api_version=os.environ.get("OPENAI_API_VERSION", ""),  # type: ignore //pylance誤検知のため
             deployment_name=os.environ.get("OPENAI_API_DEPLOYMENT_NAME", ""),  # type: ignore //pylance誤検知のため
             openai_api_key=os.environ.get("OPENAI_API_KEY", ""),  # type: ignore //pylance誤検知のため
             openai_api_type=os.environ.get("OPENAI_API_TYPE", ""),
