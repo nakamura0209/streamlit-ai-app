@@ -112,8 +112,8 @@ def main():
 
         with st.chat_message(Role.ASSISTANT.value):
             st_callback = StreamlitCallbackHandler(st.container())
-            response = llm(st.session_state.messages)
-            st.markdown(response.content)
+            response = llm(st.session_state.messages, stream=True)
+            # st.markdown(response.content)
             # response = llm(st.session_state.messages, callbacks=[st_callback])
 
         st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore
