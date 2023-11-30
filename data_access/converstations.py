@@ -6,4 +6,7 @@ class AbstractConversations(ABC):
     def build_message(self, history_messages):
         return NotImplementedError()
 
-class Conversations():
+
+class Conversations(AbstractConversations):
+    def build_message(self, history_messages):
+        print("test")
