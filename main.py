@@ -14,8 +14,8 @@ from data_source.openai_data_source import Role
 def main():
     # .envを読み取る
     load_dotenv()
+    # エラー判断フラグ初期化
     is_error = False
-    print(is_error)
 
     st.set_page_config(page_title="Stream-AI-Chat", page_icon="🤖")
     st.header("Stream-AI-Chat")
@@ -39,6 +39,7 @@ def main():
             st.session_state.messages.append(SystemMessage(content=err_content_message))
             is_error = True
             pass
+
         except Exception as e:
             err_content_message = "想定外のエラーです。管理者に問い合わせてください。"
             st.session_state.messages.append(SystemMessage(content=err_content_message))
