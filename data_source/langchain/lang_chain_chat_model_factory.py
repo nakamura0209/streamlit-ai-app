@@ -1,5 +1,8 @@
 import os
+from typing import Any, Dict, Union
 from langchain.chat_models import AzureChatOpenAI
+
+from data_source.openai_data_source import MODELS
 
 
 class ModelParameters:
@@ -23,14 +26,15 @@ class ModelParameters:
 
 class LangchainChatModelFactory:
     @staticmethod
-    def create_instance():
+    def create_instance(temperature: float, model: Union[str, Any]) -> AzureChatOpenAI:
+        config_key: str = "config"
         return AzureChatOpenAI(
-            openai_api_base=os.environ.get("OPENAI_BASE_URL", ""),  # type: ignore //pylance誤検知のため
-            openai_api_version=os.environ.get("OPENAI_API_VERSION", ""),  # type: ignore //pylance誤検知のため
-            deployment_name=os.environ.get("OPENAI_API_DEPLOYMENT_NAME", ""),  # type: ignore //pylance誤検知のため
-            openai_api_key=os.environ.get("OPENAI_API_KEY", ""),  # type: ignore //pylance誤検知のため
-            openai_api_type=os.environ.get("OPENAI_API_TYPE", ""),
-            model_version=os.environ.get("OPENAI_API_MODEL_VERSION", ""),
+            openai_api_base=MODELS[model][config_key]["base_url"],  # type: ignore //pylance誤検知のため
+            openai_api_version=MODELS[model][config_key]["api_version"],  # type: ignore //pylance誤検知のため
+            deployment_name=MODELS[model][config_key]["deployment_name"],  # type: ignore //pylance誤検知のため
+            openai_api_key=MODELS[model][config_key]["api_key"],  # type: ignore //pylance誤検知のため
+            openai_api_type=MODELS[model][config_key]["api_type"],
+            model_version=MODELS[model][config_key]["model_version"],
             # tiktoken_model_name=os.environ.get("AZURE_OPENAI_TIKTOKEN_MODEL_NAME", "", ""),
-            temperature=0,
+            temperature=temperature,
         )
