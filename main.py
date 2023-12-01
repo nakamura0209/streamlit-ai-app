@@ -9,6 +9,9 @@ import streamlit as st
 from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
 from data_source.openai_data_source import MODELS, Role
 
+# 環境変数を読み込む
+load_dotenv()
+
 
 # サイドバーを初期化して、モデルのパラメータを設定する関数
 def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, float]:
@@ -230,8 +233,6 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
 
 # メイン関数
 def main():
-    # 環境変数を読み込む
-    load_dotenv()
     is_error = False
 
     # 基本的なページ構造をセットアップ
