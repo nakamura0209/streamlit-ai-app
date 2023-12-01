@@ -115,14 +115,14 @@ def generate_assistant_chat_response(model_key: str, temperature: float) -> bool
                 stream=True,
                 stop=None,
             ):
-                if response.choices:
-                    full_response += response.choices[0].delta.get("content", "")
+                if response.choices:  # type: ignore
+                    full_response += response.choices[0].delta.get("content", "")  # type: ignore
                     message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
 
         st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": full_response})
 
-    except openai.error.RateLimitError as e:
+    except openai.error.RateLimitError as e:  # type: ignore
         print(e)
         err_content_message = "感覚が短すぎます。1分ほど待ってから、再度お試しください。"
         with st.chat_message(Role.SYSTEM.value):
