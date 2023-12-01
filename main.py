@@ -48,6 +48,7 @@ def select_model(model_key: str, temperature: float) -> ModelParameters:
         model_config["api_version"],
         model_config["api_key"],
     )
+    print(openai.api_type)
 
     llm = ModelParameters(
         max_tokens=model_parameters["max_tokens"],
@@ -164,7 +165,7 @@ def main():
     # 会話を表示（チャット履歴含む）
     display_conversations(st.session_state.messages, is_error)
 
-    # ユーザー入力を監視
+    # ユーザー入力を受け付け
     user_input = st.chat_input("Input your message...")
     if user_input:
         # ユーザーの入力を表示
