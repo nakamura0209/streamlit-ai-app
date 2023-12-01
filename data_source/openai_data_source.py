@@ -1,5 +1,6 @@
 from enum import Enum
 import os
+from langchain.schema import SystemMessage, HumanMessage, AIMessage
 
 
 MODELS = {
@@ -9,10 +10,10 @@ MODELS = {
             "max_tokens": 4096,
             "max_prompt_tokens": 3096,
             "max_response_tokens": 1000,
-            "top_k": 10,
-            "top_p": 0.95,
-            "frequency_penalty": 0,
-            "presence_penalty": 0,
+            "max_top_k": 10,
+            "max_top_p": 2.0,
+            "max_frequency_penalty": 2.0,
+            "max_presence_penalty": 2.0,
         },
         "config": {
             "api_key": os.getenv("GPT_3_5_TURBO_API_KEY"),
@@ -29,10 +30,10 @@ MODELS = {
             "max_tokens": 4096,
             "max_prompt_tokens": 6196,
             "max_response_tokens": 2000,
-            "top_k": 20,
-            "top_p": 0.95,
-            "frequency_penalty": 0,
-            "presence_penalty": 0,
+            "max_top_k": 20,
+            "max_top_p": 2.0,
+            "max_frequency_penalty": 2.0,
+            "max_presence_penalty": 2.0,
         },
         "config": {
             "api_key": os.getenv("GPT_4_API_KEY"),
