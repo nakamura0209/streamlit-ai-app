@@ -11,9 +11,33 @@ from data_source.openai_data_source import MODELS, Role
 
 
 # サイドバーを初期化して、モデルのパラメータを設定する関数
-def initialize_sidebar(model_key: str) -> Tuple[int, float, float, float, float]:
+def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, float]:
+    """
+    サイドバーにモデルパラメータのスライダーを初期化し、その値を返します。
+
+    選択されたモデルに関連する様々なパラメータのためのスライダーをStreamlitサイドバーに作成します。
+    モデルのキーを使用してパラメータの制限を取得し、それに応じてスライダーを設定します。
+
+    Args:
+    - model_key (str): パラメータを初期化するモデルのキー。
+
+    Returns:
+    - Tuple[int, float, float, float, float]: max_tokens, temperature, top_p, frequency_penalty,
+      presence_penaltyのスライダーの値を含むタプル。
+    """
+    # セクション1: モデル選択とクリアボタン
+    st.sidebar.header("Model Selection")  # セクションのヘッダー
+    # モデルの選択
+    model_key: Union[str, Any] = st.sidebar.radio("Select a model:", list(MODELS.keys()))
+    # 会話履歴削除ボタンの追加
+    initialize_message_state()
+    st.sidebar.markdown("---")  # セクションの区切り線
+
+    # セクション2: モデルパラメータのスライダー
+    st.sidebar.header("Model Parameters")  # セクションのヘッダー
     # 選択されたモデルのパラメータを取得
     model_parameter = MODELS[model_key]["parameter"]
+
     # 各種パラメータのスライダーをサイドバーに設定
     max_tokens = st.sidebar.slider(
         "max_tokens: ",  # 最大トークン数
@@ -52,7 +76,7 @@ def initialize_sidebar(model_key: str) -> Tuple[int, float, float, float, float]
     )
 
     # 設定されたパラメータを返す
-    return max_tokens, temperature, top_p, frequency_penalty, presence_penalty
+    return model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty
 
 
 # 会話を表示する関数
@@ -215,15 +239,9 @@ def main():
     st.header("Stream-AI-Chat")
     st.sidebar.title("Options")
 
-    # 言語モデルとtemperatureを選択
-    model_key: Union[str, Any] = st.sidebar.radio("Select a model:", (MODELS.keys()))
-
-    max_tokens, temperature, top_p, frequency_penalty, presence_penalty = initialize_sidebar(model_key)
+    model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty = initialize_sidebar()
 
     llm = select_model(model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty)
-
-    # チャットメッセージセッションステートを初期化
-    initialize_message_state()
 
     # チャット履歴の初期化
     if not st.session_state["messages"]:
