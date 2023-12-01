@@ -1,48 +1,61 @@
+# 必要なライブラリとモジュールをインポート
 from typing import Any, Dict, List, Union, Tuple
 from dotenv import load_dotenv
 import openai
 import traceback
 import streamlit as st
 
+# モデルのパラメータと役割を定義するモジュールをインポート
 from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
 from data_source.openai_data_source import MODELS, Role
 
 
+# サイドバーを初期化して、モデルのパラメータを設定する関数
 def initialize_sidebar(model_key: str) -> Tuple[int, float, float, float, float]:
+    # 選択されたモデルのパラメータを取得
     model_parameter = MODELS[model_key]["parameter"]
+    # 各種パラメータのスライダーをサイドバーに設定
     max_tokens = st.sidebar.slider(
-        "max_tokens: ",
+        "max_tokens: ",  # 最大トークン数
         min_value=1,
         max_value=model_parameter["max_tokens"],
         value=2048,
         step=1,
     )
-    temperature = st.sidebar.slider("temperature: ", min_value=0.0, max_value=2.0, value=0.0, step=0.1)
+    temperature = st.sidebar.slider(
+        "temperature: ",  # 温度パラメータ
+        min_value=0.0,
+        max_value=2.0,
+        value=0.0,
+        step=0.1,
+    )
     top_p = st.sidebar.slider(
-        "top_p: ",
+        "top_p: ",  # トップPサンプリング
         min_value=0.0,
         max_value=model_parameter["max_top_p"],
         value=0.0,
         step=0.1,
     )
     frequency_penalty = st.sidebar.slider(
-        "frequency_penalty: ",
+        "frequency_penalty: ",  # 頻度ペナルティ
         min_value=0.0,
         max_value=model_parameter["max_frequency_penalty"],
         value=0.0,
         step=0.1,
     )
     presence_penalty = st.sidebar.slider(
-        "presence_penalty: ",
+        "presence_penalty: ",  # 存在ペナルティ
         min_value=0.0,
         max_value=model_parameter["max_presence_penalty"],
         value=0.0,
         step=0.1,
     )
 
+    # 設定されたパラメータを返す
     return max_tokens, temperature, top_p, frequency_penalty, presence_penalty
 
 
+# 会話を表示する関数
 def display_conversations(messages: List[Dict[str, Any]], is_error: bool) -> None:
     """
     会話を表示します。エラーが発生した場合も含みます。
@@ -62,6 +75,7 @@ def display_conversations(messages: List[Dict[str, Any]], is_error: bool) -> Non
                     st.markdown(content)
 
 
+# モデルを選択し、パラメータを設定する関数
 def select_model(
     model_key: str,
     max_tokens: int,
@@ -80,8 +94,10 @@ def select_model(
     Returns:
         ModelParameters: 選択された言語モデルのパラメータ。
     """
+    # 選択されたモデルの設定を取得
     model_config = MODELS[model_key]["config"]
 
+    # OpenAI APIの設定をセッションステートに保存
     st.session_state["openai_model"] = model_config["model_version"]
     openai.api_type, openai.api_base, openai.api_version, openai.api_key = (
         model_config["api_type"],
@@ -91,6 +107,7 @@ def select_model(
     )
     print(openai.api_type)
 
+    # 選択されたモデルのパラメータを設定
     llm = ModelParameters(
         max_tokens=max_tokens,
         temperature=temperature,
@@ -100,15 +117,19 @@ def select_model(
         deployment_name=model_config["deployment_name"],
     )
 
+    # 選択されたモデルを情報として表示
     st.info(f"{model_key} is selected")
 
+    # 設定されたモデルのパラメータを返す
     return llm
 
 
+# チャットメッセージのセッションステートを初期化する関数
 def initialize_message_state() -> None:
     """
     チャットメッセージのセッションステートを初期化します。
     """
+    # クリアボタンをサイドバーに設定
     clear_button = st.sidebar.button("Clear", key="clear")
     if clear_button:
         st.info("Conversation history has been deleted.")
@@ -117,6 +138,7 @@ def initialize_message_state() -> None:
         st.session_state.costs = []
 
 
+# ユーザーのチャット入力を会話に追加する関数
 def add_user_chat_message(user_input: str) -> None:
     """
     ユーザーのチャット入力を会話に追加します。
@@ -128,6 +150,7 @@ def add_user_chat_message(user_input: str) -> None:
     st.chat_message(Role.UESR.value).markdown(user_input)
 
 
+# アシスタントのチャット応答を生成する関数
 def generate_assistant_chat_response(model_key: str, temperature: float, llm: ModelParameters) -> bool:
     """
     OpenAIのChat APIを使用してアシスタントのチャット応答を生成します。
@@ -143,6 +166,7 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
         with st.chat_message(Role.ASSISTANT.value):
             message_placeholder = st.empty()
             full_response = ""
+            # OpenAIのChat APIを呼び出して応答を生成
             for response in openai.ChatCompletion.create(
                 engine=MODELS[model_key]["config"]["deployment_name"],
                 messages=[
@@ -180,6 +204,7 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
     return False
 
 
+# メイン関数
 def main():
     # 環境変数を読み込む
     load_dotenv()
@@ -216,5 +241,6 @@ def main():
         is_error = generate_assistant_chat_response(model_key, temperature, llm)
 
 
+# メイン関数を実行
 if __name__ == "__main__":
     main()
