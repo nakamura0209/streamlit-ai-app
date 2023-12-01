@@ -1,13 +1,85 @@
-from typing import Any, Dict, List, Union
+# 必要なライブラリとモジュールをインポート
+from typing import Any, Dict, List, Union, Tuple
 from dotenv import load_dotenv
 import openai
 import traceback
 import streamlit as st
 
+# モデルのパラメータと役割を定義するモジュールをインポート
 from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
 from data_source.openai_data_source import MODELS, Role
 
 
+# サイドバーを初期化して、モデルのパラメータを設定する関数
+def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, float]:
+    """
+    サイドバーにモデルパラメータのスライダーを初期化し、その値を返します。
+
+    選択されたモデルに関連する様々なパラメータのためのスライダーをStreamlitサイドバーに作成します。
+    モデルのキーを使用してパラメータの制限を取得し、それに応じてスライダーを設定します。
+
+    Args:
+    - model_key (str): パラメータを初期化するモデルのキー。
+
+    Returns:
+    - Tuple[int, float, float, float, float]: max_tokens, temperature, top_p, frequency_penalty,
+      presence_penaltyのスライダーの値を含むタプル。
+    """
+    # セクション1: モデル選択とクリアボタン
+    st.sidebar.header("Model Selection")  # セクションのヘッダー
+    # モデルの選択
+    model_key: Union[str, Any] = st.sidebar.radio("Select a model:", list(MODELS.keys()))
+    # 会話履歴削除ボタンの追加
+    initialize_message_state()
+    st.sidebar.markdown("---")  # セクションの区切り線
+
+    # セクション2: モデルパラメータのスライダー
+    st.sidebar.header("Model Parameters")  # セクションのヘッダー
+    # 選択されたモデルのパラメータを取得
+    model_parameter = MODELS[model_key]["parameter"]
+
+    # 各種パラメータのスライダーをサイドバーに設定
+    max_tokens = st.sidebar.slider(
+        "max_tokens: ",  # 最大トークン数
+        min_value=1,
+        max_value=model_parameter["max_tokens"],
+        value=2048,
+        step=1,
+    )
+    temperature = st.sidebar.slider(
+        "temperature: ",  # 温度パラメータ
+        min_value=0.0,
+        max_value=2.0,
+        value=0.0,
+        step=0.1,
+    )
+    top_p = st.sidebar.slider(
+        "top_p: ",  # トップPサンプリング
+        min_value=0.0,
+        max_value=model_parameter["max_top_p"],
+        value=0.0,
+        step=0.1,
+    )
+    frequency_penalty = st.sidebar.slider(
+        "frequency_penalty: ",  # 頻度ペナルティ
+        min_value=0.0,
+        max_value=model_parameter["max_frequency_penalty"],
+        value=0.0,
+        step=0.1,
+    )
+    presence_penalty = st.sidebar.slider(
+        "presence_penalty: ",  # 存在ペナルティ
+        min_value=0.0,
+        max_value=model_parameter["max_presence_penalty"],
+        value=0.0,
+        step=0.1,
+    )
+
+    # 設定されたパラメータを返す
+    return model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty
+
+
+# 会話を表示する関数
 def display_conversations(messages: List[Dict[str, Any]], is_error: bool) -> None:
     """
     会話を表示します。エラーが発生した場合も含みます。
@@ -27,7 +99,15 @@ def display_conversations(messages: List[Dict[str, Any]], is_error: bool) -> Non
                     st.markdown(content)
 
 
-def select_model(model_key: str, temperature: float) -> ModelParameters:
+# モデルを選択し、パラメータを設定する関数
+def select_model(
+    model_key: str,
+    max_tokens: int,
+    temperature: float,
+    top_p: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+) -> ModelParameters:
     """
     言語モデルを選択し、そのパラメータを設定します。
 
@@ -38,9 +118,10 @@ def select_model(model_key: str, temperature: float) -> ModelParameters:
     Returns:
         ModelParameters: 選択された言語モデルのパラメータ。
     """
+    # 選択されたモデルの設定を取得
     model_config = MODELS[model_key]["config"]
-    model_parameters = MODELS[model_key]["parameter"]
 
+    # OpenAI APIの設定をセッションステートに保存
     st.session_state["openai_model"] = model_config["model_version"]
     openai.api_type, openai.api_base, openai.api_version, openai.api_key = (
         model_config["api_type"],
@@ -50,24 +131,29 @@ def select_model(model_key: str, temperature: float) -> ModelParameters:
     )
     print(openai.api_type)
 
+    # 選択されたモデルのパラメータを設定
     llm = ModelParameters(
-        max_tokens=model_parameters["max_tokens"],
+        max_tokens=max_tokens,
         temperature=temperature,
-        top_p=model_parameters["top_p"],
-        frequency_penalty=model_parameters["frequency_penalty"],
-        presence_penalty=model_parameters["presence_penalty"],
+        top_p=top_p,
+        frequency_penalty=frequency_penalty,
+        presence_penalty=presence_penalty,
         deployment_name=model_config["deployment_name"],
     )
 
+    # 選択されたモデルを情報として表示
     st.info(f"{model_key} is selected")
 
+    # 設定されたモデルのパラメータを返す
     return llm
 
 
+# チャットメッセージのセッションステートを初期化する関数
 def initialize_message_state() -> None:
     """
     チャットメッセージのセッションステートを初期化します。
     """
+    # クリアボタンをサイドバーに設定
     clear_button = st.sidebar.button("Clear", key="clear")
     if clear_button:
         st.info("Conversation history has been deleted.")
@@ -76,6 +162,7 @@ def initialize_message_state() -> None:
         st.session_state.costs = []
 
 
+# ユーザーのチャット入力を会話に追加する関数
 def add_user_chat_message(user_input: str) -> None:
     """
     ユーザーのチャット入力を会話に追加します。
@@ -87,7 +174,8 @@ def add_user_chat_message(user_input: str) -> None:
     st.chat_message(Role.UESR.value).markdown(user_input)
 
 
-def generate_assistant_chat_response(model_key: str, temperature: float) -> bool:
+# アシスタントのチャット応答を生成する関数
+def generate_assistant_chat_response(model_key: str, temperature: float, llm: ModelParameters) -> bool:
     """
     OpenAIのChat APIを使用してアシスタントのチャット応答を生成します。
 
@@ -102,16 +190,17 @@ def generate_assistant_chat_response(model_key: str, temperature: float) -> bool
         with st.chat_message(Role.ASSISTANT.value):
             message_placeholder = st.empty()
             full_response = ""
+            # OpenAIのChat APIを呼び出して応答を生成
             for response in openai.ChatCompletion.create(
                 engine=MODELS[model_key]["config"]["deployment_name"],
                 messages=[
                     {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
                 ],
                 temperature=temperature,
-                max_tokens=MODELS[model_key]["parameter"]["max_tokens"],
-                top_p=MODELS[model_key]["parameter"]["top_p"],
-                frequency_penalty=MODELS[model_key]["parameter"]["frequency_penalty"],
-                presence_penalty=MODELS[model_key]["parameter"]["presence_penalty"],
+                max_tokens=llm.max_tokens,
+                top_p=llm.top_p,
+                frequency_penalty=llm.frequency_penalty,
+                presence_penalty=llm.presence_penalty,
                 stream=True,
                 stop=None,
             ):
@@ -139,6 +228,7 @@ def generate_assistant_chat_response(model_key: str, temperature: float) -> bool
     return False
 
 
+# メイン関数
 def main():
     # 環境変数を読み込む
     load_dotenv()
@@ -149,14 +239,9 @@ def main():
     st.header("Stream-AI-Chat")
     st.sidebar.title("Options")
 
-    # 言語モデルとtemperatureを選択
-    model_key: Union[str, Any] = st.sidebar.radio("Select a model:", (MODELS.keys()))
-    temperature = st.sidebar.slider("temperature: ", min_value=0.0, max_value=2.0, value=0.0, step=0.1)
+    model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty = initialize_sidebar()
 
-    llm = select_model(model_key, temperature)
-
-    # チャットメッセージセッションステートを初期化
-    initialize_message_state()
+    llm = select_model(model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty)
 
     # チャット履歴の初期化
     if not st.session_state["messages"]:
@@ -171,8 +256,9 @@ def main():
         # ユーザーの入力を表示
         add_user_chat_message(user_input)
         # アシスタントのチャット応答を生成
-        is_error = generate_assistant_chat_response(model_key, temperature)
+        is_error = generate_assistant_chat_response(model_key, temperature, llm)
 
 
+# メイン関数を実行
 if __name__ == "__main__":
     main()
