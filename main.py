@@ -16,7 +16,6 @@ def display_conversations(messages: List[Dict[str, Any]], is_error: bool) -> Non
         messages (List[Dict[str, Any]]): 会話のメッセージリスト。
         is_error (bool): エラーが発生したかどうかのフラグ。
     """
-    print(st.session_state.messages)
     for message in messages:
         role, content = message["role"], message["content"]
         if role == "user" or role == "assistant":
@@ -34,7 +33,7 @@ def select_model(model_key: str, temperature: float) -> ModelParameters:
 
     Args:
         model_key (str): 選択された言語モデルのキー。
-        temperature (float): テキスト生成のための温度パラメータ。
+        temperature (float): テキスト生成のためのtemperatureパラメータ。
 
     Returns:
         ModelParameters: 選択された言語モデルのパラメータ。
@@ -68,9 +67,9 @@ def initialize_message_state() -> None:
     """
     チャットメッセージのセッションステートを初期化します。
     """
-    clear_button = st.sidebar.button("会話履歴削除", key="clear")
+    clear_button = st.sidebar.button("Clear", key="clear")
     if clear_button:
-        st.info("会話履歴が削除されました。")
+        st.info("Conversation history has been deleted.")
     if clear_button or "messages" not in st.session_state:
         st.session_state.messages = []
         st.session_state.costs = []
@@ -93,7 +92,7 @@ def generate_assistant_chat_response(model_key: str, temperature: float) -> bool
 
     Args:
         model_key (str): 選択された言語モデルのキー。
-        temperature (float): テキスト生成のための温度パラメータ。
+        temperature (float): テキスト生成のためのtemperatureパラメータ。
 
     Returns:
         bool: エラーが発生した場合はTrue、それ以外はFalse。
@@ -124,14 +123,14 @@ def generate_assistant_chat_response(model_key: str, temperature: float) -> bool
 
     except openai.error.RateLimitError as e:  # type: ignore
         print(e)
-        err_content_message = "感覚が短すぎます。1分ほど待ってから、再度お試しください。"
+        err_content_message = "The execution interval is too short. Wait a minute and try again."
         with st.chat_message(Role.SYSTEM.value):
             st.markdown(err_content_message)
         return True
 
     except Exception as e:
         print(traceback.format_exc())
-        err_content_message = "想定外のエラーです。管理者に問い合わせてください。"
+        err_content_message = "Unexpected error. Contact the administrator."
         with st.chat_message(Role.SYSTEM.value):
             st.markdown(err_content_message)
         return True
@@ -147,11 +146,11 @@ def main():
     # 基本的なページ構造をセットアップ
     st.set_page_config(page_title="Stream-AI-Chat", page_icon="🤖")
     st.header("Stream-AI-Chat")
-    st.sidebar.title("オプション")
+    st.sidebar.title("Options")
 
-    # 言語モデルと温度を選択
-    model_key: Union[str, Any] = st.sidebar.radio("モデルの選択: ", (MODELS.keys()))
-    temperature = st.sidebar.slider("温度: ", min_value=0.0, max_value=2.0, value=0.0, step=0.1)
+    # 言語モデルとtemperatureを選択
+    model_key: Union[str, Any] = st.sidebar.radio("Select a model:", (MODELS.keys()))
+    temperature = st.sidebar.slider("temperature: ", min_value=0.0, max_value=2.0, value=0.0, step=0.1)
 
     llm = select_model(model_key, temperature)
 
@@ -166,7 +165,7 @@ def main():
     display_conversations(st.session_state.messages, is_error)
 
     # ユーザー入力を監視
-    user_input = st.chat_input("メッセージを入力...")
+    user_input = st.chat_input("Input your message...")
     if user_input:
         # ユーザーの入力を表示
         add_user_chat_message(user_input)
