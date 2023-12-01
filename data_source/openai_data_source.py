@@ -1,6 +1,5 @@
 from enum import Enum
 import os
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
 
 
 MODELS = {
@@ -11,6 +10,9 @@ MODELS = {
             "max_prompt_tokens": 3096,
             "max_response_tokens": 1000,
             "top_k": 10,
+            "top_p": 0.95,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
         },
         "config": {
             "api_key": os.getenv("GPT_3_5_TURBO_API_KEY"),
@@ -24,10 +26,13 @@ MODELS = {
     "gpt-4": {
         "parameter": {
             "name": "gpt-4",
-            "max_tokens": 8192,
+            "max_tokens": 4096,
             "max_prompt_tokens": 6196,
             "max_response_tokens": 2000,
             "top_k": 20,
+            "top_p": 0.95,
+            "frequency_penalty": 0,
+            "presence_penalty": 0,
         },
         "config": {
             "api_key": os.getenv("GPT_4_API_KEY"),
@@ -42,6 +47,6 @@ MODELS = {
 
 
 class Role(Enum):
-    UESR = "User"
-    ASSISTANT = "Assistant"
-    SYSTEM = "System"
+    UESR = "user"
+    ASSISTANT = "assistant"
+    SYSTEM = "system"

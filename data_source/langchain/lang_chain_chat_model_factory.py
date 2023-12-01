@@ -1,4 +1,3 @@
-import os
 from typing import Any, Dict, Union
 from langchain.chat_models import AzureChatOpenAI
 
@@ -34,10 +33,10 @@ class LangchainChatModelFactory:
         継承元のChatOpenAIクラスにはプロパティとして指摘事項の要素を受け取る記載がされている
         """
         return AzureChatOpenAI(
-            openai_api_base=MODELS[model][config_key]["base_url"],
-            openai_api_version=MODELS[model][config_key]["api_version"],
-            deployment_name=MODELS[model][config_key]["deployment_name"],
-            openai_api_key=MODELS[model][config_key]["api_key"],
+            openai_api_base=MODELS[model][config_key]["base_url"],  # type: ignore
+            openai_api_version=MODELS[model][config_key]["api_version"],  # type: ignore
+            deployment_name=MODELS[model][config_key]["deployment_name"],  # type: ignore
+            openai_api_key=MODELS[model][config_key]["api_key"],  # type: ignore
             openai_api_type=MODELS[model][config_key]["api_type"],
             model_version=MODELS[model][config_key]["model_version"],
             # tiktoken_model_name=os.environ.get("AZURE_OPENAI_TIKTOKEN_MODEL_NAME", "", ""),
