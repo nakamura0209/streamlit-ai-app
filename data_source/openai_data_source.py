@@ -27,7 +27,7 @@ MODELS = {
     "gpt-4": {
         "parameter": {
             "name": "gpt-4",
-            "max_tokens": 8192,
+            "max_tokens": 4096,
             "max_prompt_tokens": 6196,
             "max_response_tokens": 2000,
             "top_k": 20,

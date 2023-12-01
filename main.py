@@ -1,64 +1,31 @@
-import os
-from typing import Any, List, Union
-from urllib import response
-from altair import Stream
+from typing import Any, Dict, List, Union
 from dotenv import load_dotenv
-from numpy import isin
 import openai
 import streamlit as st
-from langchain.callbacks import StreamlitCallbackHandler
-from langchain.chat_models import AzureChatOpenAI
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
 
 from data_source.langchain.lang_chain_chat_model_factory import (
-    LangchainChatModelFactory,
     ModelParameters,
 )
 from data_source.openai_data_source import MODELS, Role
 
 
-def create_converstations(
-    messages: List[Union[HumanMessage, AIMessage, SystemMessage]], is_error: bool
-) -> None:
+def create_converstations(messages: List[Dict[str, Any]], is_error: bool) -> None:
     # 会話の履歴も含めてやり取りを描画
     for message in messages:
-        if message.type == "ai":
+        if message["role"] == "assistant":
             with st.chat_message(Role.ASSISTANT.value):
-                st.markdown(message.content)
-        elif message.type == "human":
+                st.markdown(message["content"])
+        elif message["role"] == "user":
             with st.chat_message(Role.UESR.value):
-                st.markdown(message.content)
+                st.markdown(message["content"])
         else:
             if is_error:
                 with st.chat_message(Role.SYSTEM.value):
-                    st.markdown(message.content)
-
-
-def generate_ai_messages(
-    history_messages: List[Union[SystemMessage, Any]], llm: AzureChatOpenAI
-) -> bool:
-    try:
-        with st.spinner("Generating ChatGPT answers..."):
-            response = llm(history_messages)  # type: ignore
-        st.session_state.messages.append(AIMessage(content=response.content))  # type: ignore
-
-    except openai.error.RateLimitError as e:  # type: ignore
-        err_content_message = "感覚が短すぎます。一定時間経過後、再度お試しください。"
-        st.session_state.messages.append(SystemMessage(content=err_content_message))
-        return True
-
-    except Exception as e:
-        print(e)
-        err_content_message = "想定外のエラーです。管理者に問い合わせてください。"
-        st.session_state.messages.append(SystemMessage(content=err_content_message))
-        return True
-
-    return False
+                    st.markdown(message["content"])
 
 
 def select_model(model: Union[str, Any], temperature: float) -> ModelParameters:
     # モデルの切り替え
-    print(model)
     st.session_state["openai_model"] = MODELS[model]["config"]["model_version"]
 
     # OpenAI初期設定
@@ -90,9 +57,58 @@ def init_message() -> None:
         st.session_state.costs = []
 
 
+def create_user_chat(user_input: str) -> None:
+    st.session_state.messages.append({"role": Role.UESR.value, "content": user_input})  # type: ignore
+    st.chat_message(Role.UESR.value).markdown(user_input)
+
+
+def generate_assistant_chat(model: str, temperature: float) -> bool:
+    try:
+        with st.chat_message(Role.ASSISTANT.value):
+            message_placeholder = st.empty()  # 一時的なプレースホルダーを作成
+            full_response = ""
+            for response in openai.ChatCompletion.create(
+                engine=MODELS[model]["config"]["deployment_name"],
+                # model=st.session_state["openai_model"],
+                messages=[
+                    {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+                ],
+                temperature=temperature,
+                max_tokens=MODELS[model]["parameter"]["max_tokens"],
+                top_p=MODELS[model]["parameter"]["top_p"],
+                frequency_penalty=MODELS[model]["parameter"]["frequency_penalty"],
+                presence_penalty=MODELS[model]["parameter"]["presence_penalty"],
+                stream=True,
+                stop=None,
+            ):
+                if response.choices:
+                    full_response += response.choices[0].delta.get("content", "")
+                    message_placeholder.markdown(full_response + "▌")  # レスポンスの途中結果を表示
+            message_placeholder.markdown(full_response)  # 最終レスポンスを表示
+
+        st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": full_response})
+
+    except openai.error.RateLimitError as e:
+        print(e)
+        err_content_message = "感覚が短すぎます。1分ほど待ってから、再度お試しください。"
+        # st.session_state.messages.append({"role": Role.SYSTEM.value, "content": err_content_message})
+        with st.chat_message(Role.SYSTEM.value):
+            st.markdown(err_content_message)
+        return True
+
+    except Exception as e:
+        print(e)
+        err_content_message = "想定外のエラーです。管理者に問い合わせてください。"
+        st.session_state.messages.append({"role": Role.SYSTEM.value, "content": err_content_message})
+        return True
+
+    return False
+
+
 def main():
     # .envを読み取る
     load_dotenv()
+    is_error = False
 
     # ページの基本構成
     ## ページタイトルとヘッダの設定
@@ -114,45 +130,17 @@ def main():
     # チャット履歴の初期化
     if not st.session_state["messages"]:
         st.session_state.messages = [{"role": Role.SYSTEM.value, "content": ""}]
-    print(st.session_state)
 
     # 履歴も含めた会話の生成
-    # create_converstations(st.session_state.messages, is_error)
+    create_converstations(st.session_state.messages, is_error)
 
     # ユーザ入力を監視
     user_input = st.chat_input("Input Your Message...")
     if user_input:
-        st.session_state.messages.append({"role": Role.UESR.value, "content": user_input})  # type: ignore
-        st.chat_message(Role.UESR.value).markdown(user_input)
-
-        # TODO: ここをストリーミングで実現したい
-        with st.chat_message(Role.ASSISTANT.value):
-            message_placeholder = st.empty()  # 一時的なプレースホルダーを作成
-            full_response = ""
-            for response in openai.ChatCompletion.create(
-                engine="openai-test-model",
-                # model=st.session_state["openai_model"],
-                messages=[
-                    {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
-                ],
-                temperature=0.7,
-                max_tokens=800,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0,
-                stream=True,
-                stop=None,
-            ):
-                if response.choices:
-                    full_response += response.choices[0].delta.get("content", "")
-                    message_placeholder.markdown(full_response + "▌")  # レスポンスの途中結果を表示
-            message_placeholder.markdown(full_response)  # 最終レスポンスを表示
-
-        st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": full_response})
-        print(st.session_state.messages)
-
-        # 会話履歴をもとに回答生成開始
-        # is_error = generate_ai_messages(st.session_state.messages, llm)
+        # ユーザーが入力したインプットの描画
+        create_user_chat(user_input)
+        # アシスタントの回答を生成
+        is_error = generate_assistant_chat(model, temperature)
 
 
 if __name__ == "__main__":
