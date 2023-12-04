@@ -1,4 +1,5 @@
 # 必要なライブラリとモジュールをインポート
+from email import message
 from typing import Any, Dict, List, Union, Tuple
 from dotenv import load_dotenv
 import openai
@@ -22,7 +23,6 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     モデルのキーを使用してパラメータの制限を取得し、それに応じてスライダーを設定します。
 
     Args:
-    - model_key (str): パラメータを初期化するモデルのキー。
 
     Returns:
     - Tuple[int, float, float, float, float]: max_tokens, temperature, top_p, frequency_penalty,
@@ -52,7 +52,7 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     temperature = st.sidebar.slider(
         "temperature: ",  # 温度パラメータ
         min_value=0.0,
-        max_value=2.0,
+        max_value=model_parameter["max_temperature"],
         value=0.0,
         step=0.1,
     )
