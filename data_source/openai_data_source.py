@@ -1,12 +1,16 @@
 from enum import Enum
 import os
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
+from typing import Any, Dict, Final
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-MODELS = {
+MODELS: Dict[str, Any] = {
     "gpt-3.5-turbo": {
         "parameter": {
             "name": "gpt-3.5-turbo",
+            "max_temperature": 2.0,
             "max_tokens": 4096,
             "max_prompt_tokens": 3096,
             "max_response_tokens": 1000,
@@ -27,6 +31,7 @@ MODELS = {
     "gpt-4": {
         "parameter": {
             "name": "gpt-4",
+            "max_temperature": 2.0,
             "max_tokens": 4096,
             "max_prompt_tokens": 6196,
             "max_response_tokens": 2000,

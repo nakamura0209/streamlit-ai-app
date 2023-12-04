@@ -1,4 +1,6 @@
 # 必要なライブラリとモジュールをインポート
+from logging import Logger
+import sys
 from typing import Any, Dict, List, Union, Tuple
 from dotenv import load_dotenv
 import openai
@@ -8,6 +10,16 @@ import streamlit as st
 # モデルのパラメータと役割を定義するモジュールをインポート
 from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
 from data_source.openai_data_source import MODELS, Role
+
+from logs.app_logger import set_logging
+
+# from logs.AzureBlobHandler import write_log_to_blob
+
+# ロギング設定の読み込み
+app_logger: Logger = set_logging("__main__")
+
+# 環境変数を読み込む
+load_dotenv()
 
 
 # サイドバーを初期化して、モデルのパラメータを設定する関数
@@ -19,7 +31,6 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     モデルのキーを使用してパラメータの制限を取得し、それに応じてスライダーを設定します。
 
     Args:
-    - model_key (str): パラメータを初期化するモデルのキー。
 
     Returns:
     - Tuple[int, float, float, float, float]: max_tokens, temperature, top_p, frequency_penalty,
@@ -49,7 +60,7 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     temperature = st.sidebar.slider(
         "temperature: ",  # 温度パラメータ
         min_value=0.0,
-        max_value=2.0,
+        max_value=model_parameter["max_temperature"],
         value=0.0,
         step=0.1,
     )
@@ -119,7 +130,7 @@ def select_model(
         ModelParameters: 選択された言語モデルのパラメータ。
     """
     # 選択されたモデルの設定を取得
-    model_config = MODELS[model_key]["config"]
+    model_config: Dict[str, Any] = MODELS[model_key]["config"]
 
     # OpenAI APIの設定をセッションステートに保存
     st.session_state["openai_model"] = model_config["model_version"]
@@ -129,7 +140,6 @@ def select_model(
         model_config["api_version"],
         model_config["api_key"],
     )
-    print(openai.api_type)
 
     # 選択されたモデルのパラメータを設定
     llm = ModelParameters(
@@ -230,8 +240,6 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
 
 # メイン関数
 def main():
-    # 環境変数を読み込む
-    load_dotenv()
     is_error = False
 
     # 基本的なページ構造をセットアップ
