@@ -1,66 +1,60 @@
 # loggingモジュールから必要なクラスや関数をインポートしています。
 from logging import Logger, getLogger
 from logging.config import dictConfig
-from logging.handlers import TimedRotatingFileHandler
+import os
 from typing import Any, Dict
 
-# ログファイルのパスを定義しています。
-LOG_FILE_PATH = "logs/streamlit_ai_app.log"
+from dotenv import load_dotenv
+
+from logs.AzureBlobHandler import AzureBlobHandler
+
+load_dotenv()
 
 # ログ設定を辞書形式で定義しています。
 logging_config: Dict[str, Any] = {
-    "version": 1,  # 設定のバージョンを指定しています。
-    "disable_existing_loggers": False,  # 既存のロガーを無効にしないように設定しています。
+    "version": 1,
+    "disable_existing_loggers": False,
     "formatters": {
-        # ログのフォーマットを定義しています。
         "simple": {"format": "%(asctime)s %(name)s:%(lineno)s %(funcName)s [%(levelname)s]: %(message)s"}
     },
     "handlers": {
-        # コンソール出力用のハンドラーを設定しています。
         "consoleHandler": {
             "class": "logging.StreamHandler",
             "level": "INFO",
             "formatter": "simple",
             "stream": "ext://sys.stdout",
         },
-        # ファイル出力用のハンドラーを設定しています。
-        "fileHandler": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
+        # Azure Blob Storageへの出力用ハンドラーを設定します。
+        "azureBlobHandler": {
+            "()": AzureBlobHandler,
             "level": "INFO",
             "formatter": "simple",
-            "filename": LOG_FILE_PATH,
-            "when": "D",
-            "interval": 1,
-            "backupCount": 5,
+            "connection_string": f"DefaultEndpointsProtocol=https;AccountName={os.getenv('STORAGE_ACCOUNT_NAME')};AccountKey={os.getenv('STORAGE_ACCESS_KEY')};EndpointSuffix=core.windows.net",
+            "container_name": os.getenv("CONTAINER_NAME"),
+            "blob_name": os.getenv("CONTAINER_NAME"),
         },
     },
     "loggers": {
-        # メインモジュールのロガー設定をしています。
         "__main__": {
             "level": "INFO",
-            "handlers": ["consoleHandler", "fileHandler"],
+            "handlers": ["consoleHandler", "azureBlobHandler"],
             "propagate": False,
         },
-        # 同じ階層のモジュールのロガー設定をしています。
         "same_hierarchy": {
             "level": "INFO",
-            "handlers": ["consoleHandler", "fileHandler"],
+            "handlers": ["consoleHandler", "azureBlobHandler"],
             "propagate": False,
         },
-        # 下位階層のモジュールのロガー設定をしています。
         "lower.sub": {
             "level": "DEBUG",
-            "handlers": ["consoleHandler", "fileHandler"],
+            "handlers": ["consoleHandler", "azureBlobHandler"],
             "propagate": False,
         },
     },
-    "root": {"level": "INFO"},  # ルートロガーのレベルを設定しています。
+    "root": {"level": "INFO"},
 }
 
 
 def set_logging(module_name: str) -> Logger:
-    # 辞書形式の設定を適用しています。
     dictConfig(logging_config)
-
-    # 現在のモジュールのロガーを取得しています。
     return getLogger(module_name)

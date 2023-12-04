@@ -1,6 +1,9 @@
 from enum import Enum
 import os
 from typing import Any, Dict, Final
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 MODELS: Dict[str, Any] = {
