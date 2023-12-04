@@ -1,5 +1,4 @@
 # 必要なライブラリとモジュールをインポート
-from email import message
 from typing import Any, Dict, List, Union, Tuple
 from dotenv import load_dotenv
 import openai
