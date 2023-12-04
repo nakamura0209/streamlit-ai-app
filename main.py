@@ -132,7 +132,6 @@ def select_model(
         model_config["api_version"],
         model_config["api_key"],
     )
-    print(openai.api_type)
 
     # 選択されたモデルのパラメータを設定
     llm = ModelParameters(
