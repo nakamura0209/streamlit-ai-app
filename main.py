@@ -122,7 +122,7 @@ def select_model(
         ModelParameters: 選択された言語モデルのパラメータ。
     """
     # 選択されたモデルの設定を取得
-    model_config = MODELS[model_key]["config"]
+    model_config: Dict[str, Any] = MODELS[model_key]["config"]
 
     # OpenAI APIの設定をセッションステートに保存
     st.session_state["openai_model"] = model_config["model_version"]

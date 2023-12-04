@@ -1,8 +1,11 @@
 from enum import Enum
 import os
+from typing import Any, Dict, Final
+
+from attr import dataclass
 
 
-MODELS = {
+MODELS: Dict[str, Any] = {
     "gpt-3.5-turbo": {
         "parameter": {
             "name": "gpt-3.5-turbo",
