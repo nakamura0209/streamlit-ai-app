@@ -2,8 +2,6 @@ from enum import Enum
 import os
 from typing import Any, Dict, Final
 
-from attr import dataclass
-
 
 MODELS: Dict[str, Any] = {
     "gpt-3.5-turbo": {
