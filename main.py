@@ -1,4 +1,5 @@
 # 必要なライブラリとモジュールをインポート
+from logging import Logger
 from typing import Any, Dict, List, Union, Tuple
 from dotenv import load_dotenv
 import openai
@@ -8,6 +9,10 @@ import streamlit as st
 # モデルのパラメータと役割を定義するモジュールをインポート
 from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
 from data_source.openai_data_source import MODELS, Role
+from logs.app_logger import set_logging
+
+# ロギング設定の読み込み
+app_logger: Logger = set_logging("__main__")
 
 # 環境変数を読み込む
 load_dotenv()

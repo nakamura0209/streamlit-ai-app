@@ -1,11 +1,11 @@
 # loggingモジュールから必要なクラスや関数をインポートしています。
-from logging import getLogger
+from logging import Logger, getLogger
 from logging.config import dictConfig
 from logging.handlers import TimedRotatingFileHandler
 from typing import Any, Dict
 
 # ログファイルのパスを定義しています。
-LOG_FILE_PATH = "streamlit_ai_app.log"
+LOG_FILE_PATH = "logs/streamlit_ai_app.log"
 
 # ログ設定を辞書形式で定義しています。
 logging_config: Dict[str, Any] = {
@@ -57,8 +57,10 @@ logging_config: Dict[str, Any] = {
     "root": {"level": "INFO"},  # ルートロガーのレベルを設定しています。
 }
 
-# 辞書形式の設定を適用しています。
-dictConfig(logging_config)
 
-# 現在のモジュールのロガーを取得しています。
-logger = getLogger(__name__)
+def set_logging(module_name: str) -> Logger:
+    # 辞書形式の設定を適用しています。
+    dictConfig(logging_config)
+
+    # 現在のモジュールのロガーを取得しています。
+    return getLogger(module_name)
