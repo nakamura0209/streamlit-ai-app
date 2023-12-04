@@ -2,7 +2,6 @@ import os
 from logging import Logger, getLogger
 from logging.config import dictConfig
 from typing import Any, Dict
-from datetime import datetime
 
 from dotenv import load_dotenv
 from logs.AzureBlobHandler import AzureBlobHandler
