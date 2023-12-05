@@ -38,9 +38,9 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     # セクション1: モデル選択とクリアボタン
     st.sidebar.header("Model Selection")  # セクションのヘッダー
     # モデルの選択
-    model_key: Union[str, Any] = st.sidebar.radio("Select a model:", list(MODELS.keys()))
+    model_key: str = st.sidebar.radio("Select a model:", list(MODELS.keys()))  # type: ignore
     # 会話履歴削除ボタンの追加
-    initialize_message_state()
+    clear_conversations()
     st.sidebar.markdown("---")  # セクションの区切り線
 
     # セクション2: モデルパラメータ
@@ -118,7 +118,7 @@ def select_model(
     )
 
     # 選択されたモデルのパラメータを設定
-    llm = ModelParameters(
+    language_model_parameters = ModelParameters(
         max_tokens=max_tokens,
         temperature=temperature,
         top_p=top_p,
@@ -129,12 +129,12 @@ def select_model(
 
     st.info(f"{model_key} is selected")
 
-    return llm
+    return language_model_parameters
 
 
 # チャットメッセージのセッションステートを初期化する関数
 @log_decorator(logger)
-def initialize_message_state() -> None:
+def clear_conversations() -> None:
     """
     チャットメッセージのセッションステートを初期化します。
     """

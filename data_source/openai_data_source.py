@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-MODELS: Dict[str, Any] = {
+MODELS: Dict[str, Dict[str, Any]] = {
     "gpt-3.5-turbo": {
         "parameter": {
             "name": "gpt-3.5-turbo",
@@ -53,6 +53,6 @@ MODELS: Dict[str, Any] = {
 
 
 class Role(Enum):
-    UESR = "user"
+    USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"

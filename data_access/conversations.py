@@ -20,8 +20,8 @@ def add_user_chat_message(user_input: str) -> None:
     Args:
         user_input (str): ユーザーのチャット入力。
     """
-    st.session_state.messages.append({"role": Role.UESR.value, "content": user_input})
-    st.chat_message(Role.UESR.value).markdown(user_input)
+    st.session_state.messages.append({"role": Role.USER.value, "content": user_input})
+    st.chat_message(Role.USER.value).markdown(user_input)
 
 
 # アシスタントのチャット応答を生成する関数
@@ -33,6 +33,7 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
     Args:
         model_key (str): 選択された言語モデルのキー。
         temperature (float): テキスト生成のためのtemperatureパラメータ。
+        llm(ModelParameters): 会話を行う際のGPTモデルとそのパラメータ
 
     Returns:
         bool: エラーが発生した場合はTrue、それ以外はFalse。
@@ -63,13 +64,14 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
         st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": full_response})
 
     except openai.error.RateLimitError as e:  # type: ignore
+        logger.warn(traceback.format_exc())
         err_content_message = "The execution interval is too short. Wait a minute and try again."
         with st.chat_message(Role.SYSTEM.value):
             st.markdown(err_content_message)
         return True
 
     except Exception as e:
-        print(traceback.format_exc())
+        logger.warn(traceback.format_exc())
         err_content_message = "Unexpected error. Contact the administrator."
         with st.chat_message(Role.SYSTEM.value):
             st.markdown(err_content_message)

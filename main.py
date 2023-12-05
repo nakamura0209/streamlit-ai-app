@@ -1,6 +1,4 @@
-# 必要なライブラリとモジュールをインポート
 from logging import Logger
-from dotenv import load_dotenv
 import streamlit as st
 from data_access.conversations import (
     add_user_chat_message,
@@ -9,31 +7,27 @@ from data_access.conversations import (
 )
 from data_access.initialize_chat_page import initialize_page_base, initialize_sidebar, select_model
 
-# モデルのパラメータと役割を定義するモジュールをインポート
 from data_source.openai_data_source import Role
 
 from logs.app_logger import set_logging
 from logs.log_decorator import log_decorator
 
-# from logs.AzureBlobHandler import write_log_to_blob
-
 # ロギング設定の読み込み
 logger: Logger = set_logging("__main__")
-
-# 環境変数を読み込む
-load_dotenv()
 
 
 # メイン関数
 @log_decorator(logger)
-def main():
+def main() -> None:
+    # 会話生成において何かしらのエラーの発生を検知する際に使用
+    # あくまでもユーザに警告を出すための検知フラグであり、異常終了させるためのフラグではな言うことに注意
     is_error = False
 
-    # 基本的なページ構造をセットアップ
     initialize_page_base()
 
     model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty = initialize_sidebar()
 
+    # 画面上でユーザが好きなタイミングで好きなモデルを選択できる
     llm = select_model(model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty)
 
     # チャット履歴の初期化
