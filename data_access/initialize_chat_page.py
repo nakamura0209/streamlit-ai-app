@@ -39,6 +39,7 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     st.sidebar.header("Model Selection")  # セクションのヘッダー
     # モデルの選択
     model_key: str = st.sidebar.radio("Select a model:", list(MODELS.keys()))  # type: ignore
+    logger.info(f"User has switched to model {model_key}")
     # 会話履歴削除ボタンの追加
     clear_conversations()
     st.sidebar.markdown("---")  # セクションの区切り線
