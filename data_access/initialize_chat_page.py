@@ -39,6 +39,7 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     st.sidebar.header("Model Selection")  # セクションのヘッダー
     # モデルの選択
     model_key: str = st.sidebar.radio("Select a model:", list(MODELS.keys()))  # type: ignore
+    logger.info(f"User has switched to model {model_key}")
     # 会話履歴削除ボタンの追加
     clear_conversations()
     st.sidebar.markdown("---")  # セクションの区切り線
@@ -148,6 +149,8 @@ def clear_conversations() -> None:
     if clear_button or "messages" not in st.session_state:
         st.session_state.messages = []
         st.session_state.costs = []
+        st.session_state.prompt_tokens = []
+        st.session_state.completion_tokens = []
 
 
 @log_decorator(logger)
@@ -169,5 +172,7 @@ def display_total_costs() -> None:
         logger.debug(f"st.session_state.costs = {st.session_state.costs}")
         if st.session_state.costs:
             st.sidebar.markdown(f"**{st.session_state.costs} YEN**")
+            st.sidebar.markdown(f"**Prompt Tokens: {st.session_state.prompt_tokens}**")
+            st.sidebar.markdown(f"**Completion Tokens: {st.session_state.completion_tokens}**")
         else:
             st.sidebar.markdown(f"**0 YEN**")
