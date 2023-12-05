@@ -54,19 +54,11 @@ def main() -> None:
             model_key, temperature, llm
         )
 
-        # トークン数の取得
-        prompt_token_count: int = get_tiktoken_count(converted_history, model_key)
-        completion_token_count: int = get_tiktoken_count(assistant_chat, model_key)
-        print(f"prompt_token_count = {prompt_token_count}")
-        print(f"completion_token_count = {completion_token_count}")
-        print(MODELS[model_key]["config"]["prompt_cost"])
-        print(MODELS[model_key]["config"]["completion_cost"])
-
         # コストの計算
         if not is_error:
             total_cost = get_conversation_cost(
-                prompt_token_count,
-                completion_token_count,
+                get_tiktoken_count(converted_history, model_key),
+                get_tiktoken_count(assistant_chat, model_key),
                 MODELS[model_key]["config"]["prompt_cost"],
                 MODELS[model_key]["config"]["completion_cost"],
             )

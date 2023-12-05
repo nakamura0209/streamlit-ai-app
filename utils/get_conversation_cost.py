@@ -1,6 +1,14 @@
 from decimal import Decimal
+from logging import Logger
+from logs.app_logger import set_logging
+
+from logs.log_decorator import log_decorator
 
 
+logger: Logger = set_logging("lower.sub")
+
+
+@log_decorator(logger)
 def get_conversation_cost(
     prompt_token_count: int,
     completion_token_count: int,
@@ -26,6 +34,9 @@ def get_conversation_cost(
     # トークン数に応じたコストを計算
     total_prompt_cost: Decimal = prompt_token_count * Decimal(prompt_cost)
     total_completion_cost: Decimal = completion_token_count * Decimal(completion_cost)
+
+    logger.debug(f"total_prompt_cost = {total_prompt_cost}")
+    logger.debug(f"total_completion_cost = {total_completion_cost}")
 
     # 合計コストを計算
     total_cost: Decimal = total_prompt_cost + total_completion_cost
