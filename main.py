@@ -54,6 +54,8 @@ def main() -> None:
         )
 
         # コストの計算
+        prompt_tokens: int = get_tiktoken_count(converted_history, model_key)
+        completion_tokens: int = get_tiktoken_count(assistant_chat, model_key)
         if not is_error:
             total_cost = get_conversation_cost(
                 get_tiktoken_count(converted_history, model_key),
@@ -62,6 +64,8 @@ def main() -> None:
                 MODELS[model_key]["config"]["completion_cost"],
             )
             st.session_state.costs = total_cost
+            st.session_state.prompt_tokens = prompt_tokens
+            st.session_state.completion_tokens = completion_tokens
 
 
 # メイン関数を実行
