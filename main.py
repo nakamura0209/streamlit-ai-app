@@ -12,11 +12,12 @@ from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
 from data_source.openai_data_source import MODELS, Role
 
 from logs.app_logger import set_logging
+from logs.log_decorator import log_decorator
 
 # from logs.AzureBlobHandler import write_log_to_blob
 
 # ロギング設定の読み込み
-app_logger: Logger = set_logging("__main__")
+logger: Logger = set_logging("__main__")
 
 # 環境変数を読み込む
 load_dotenv()
@@ -239,6 +240,7 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
 
 
 # メイン関数
+@log_decorator(logger)
 def main():
     is_error = False
 
