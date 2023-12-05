@@ -2,16 +2,14 @@ import functools
 from logging import Logger
 from typing import Callable
 
-from logs.app_logger import set_logging
 
-
-import json
-
-
+# log_decoratorは、ロギングを行うためのデコレータを生成するファクトリ関数です。
 def log_decorator(logger: Logger) -> Callable:
     """関数の開始、引数、戻り値、終了時にログを出力するデコレータを生成する"""
 
+    # 実際のデコレータ関数です。デコレートされる関数を引数として受け取ります。
     def decorator(func: Callable) -> Callable:
+        # functools.wrapsは、デコレートされた関数のメタデータを保持するために使用されます。
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             func_name = func.__name__
@@ -27,6 +25,8 @@ def log_decorator(logger: Logger) -> Callable:
             finally:
                 logger.info(f"END: {func_name}")
 
+        # デコレータはwrapper関数を返します。
         return wrapper
 
+    # デコレータファクトリーはdecorator関数を返します。
     return decorator

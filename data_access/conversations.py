@@ -63,7 +63,6 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
         st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": full_response})
 
     except openai.error.RateLimitError as e:  # type: ignore
-        print(e)
         err_content_message = "The execution interval is too short. Wait a minute and try again."
         with st.chat_message(Role.SYSTEM.value):
             st.markdown(err_content_message)

@@ -15,7 +15,7 @@ logger: Logger = set_logging("lower.sub")
 
 @log_decorator(logger)
 def initialize_page_base() -> None:
-    # 基本的なページ構造をセットアップ
+    """基本的なページ構造をセットアップ"""
     st.set_page_config(page_title="Stream-AI-Chat", page_icon="🤖")
     st.header("Stream-AI-Chat")
     st.sidebar.title("Options")
@@ -43,12 +43,10 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     initialize_message_state()
     st.sidebar.markdown("---")  # セクションの区切り線
 
-    # セクション2: モデルパラメータのスライダー
-    st.sidebar.header("Model Parameters")  # セクションのヘッダー
-    # 選択されたモデルのパラメータを取得
+    # セクション2: モデルパラメータ
+    st.sidebar.header("Model Parameters")
     model_parameter = MODELS[model_key]["parameter"]
 
-    # 各種パラメータのスライダーをサイドバーに設定
     max_tokens = st.sidebar.slider(
         "max_tokens: ",  # 最大トークン数
         min_value=1,
@@ -85,7 +83,6 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
         step=0.1,
     )
 
-    # 設定されたパラメータを返す
     return model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty
 
 
@@ -109,7 +106,6 @@ def select_model(
     Returns:
         ModelParameters: 選択された言語モデルのパラメータ。
     """
-    # 選択されたモデルの設定を取得
     model_config: Dict[str, Any] = MODELS[model_key]["config"]
 
     # OpenAI APIの設定をセッションステートに保存
@@ -131,10 +127,8 @@ def select_model(
         deployment_name=model_config["deployment_name"],
     )
 
-    # 選択されたモデルを情報として表示
     st.info(f"{model_key} is selected")
 
-    # 設定されたモデルのパラメータを返す
     return llm
 
 
