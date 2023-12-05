@@ -8,7 +8,6 @@ from data_access.conversations import (
 from utils.get_conversation_cost import get_conversation_cost
 from utils.get_token_count import get_tiktoken_count
 from data_access.initialize_chat_page import (
-    display_total_costs,
     initialize_page_base,
     initialize_sidebar,
     select_model,
