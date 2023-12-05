@@ -42,6 +42,9 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     # 会話履歴削除ボタンの追加
     clear_conversations()
     st.sidebar.markdown("---")  # セクションの区切り線
+    # コスト表示ボタンの追加
+    display_total_costs()
+    st.sidebar.markdown("---")  # セクションの区切り線
 
     # セクション2: モデルパラメータ
     st.sidebar.header("Model Parameters")
@@ -145,3 +148,26 @@ def clear_conversations() -> None:
     if clear_button or "messages" not in st.session_state:
         st.session_state.messages = []
         st.session_state.costs = []
+
+
+@log_decorator(logger)
+# 会話のコストを表示する
+def display_total_costs() -> None:
+    """
+    サイドバーに会話の総コストを表示する関数。
+
+    この関数は、Streamlitのサイドバーに「Show Total Costs」ボタンを追加し、
+    ユーザーがこのボタンをクリックすると、セッション状態に保存されている
+    総コストを表示します。コストが未定義の場合は、0円として表示します。
+
+    Returns:
+        None
+    """
+    st.sidebar.markdown("## Costs")
+    show_cost_button = st.sidebar.button("Show Total Costs")
+    if show_cost_button:
+        logger.debug(f"st.session_state.costs = {st.session_state.costs}")
+        if st.session_state.costs:
+            st.sidebar.markdown(f"**{st.session_state.costs} YEN**")
+        else:
+            st.sidebar.markdown(f"**0 YEN**")

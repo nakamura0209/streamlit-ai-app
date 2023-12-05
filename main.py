@@ -5,9 +5,16 @@ from data_access.conversations import (
     display_conversations,
     generate_assistant_chat_response,
 )
-from data_access.initialize_chat_page import initialize_page_base, initialize_sidebar, select_model
+from utils.get_conversation_cost import get_conversation_cost
+from utils.get_token_count import get_tiktoken_count
+from data_access.initialize_chat_page import (
+    display_total_costs,
+    initialize_page_base,
+    initialize_sidebar,
+    select_model,
+)
 
-from data_source.openai_data_source import Role
+from data_source.openai_data_source import MODELS, Role
 
 from logs.app_logger import set_logging
 from logs.log_decorator import log_decorator
@@ -43,7 +50,27 @@ def main() -> None:
         # ユーザーの入力を表示
         add_user_chat_message(user_input)
         # アシスタントのチャット応答を生成
-        is_error = generate_assistant_chat_response(model_key, temperature, llm)
+        is_error, converted_history, assistant_chat = generate_assistant_chat_response(
+            model_key, temperature, llm
+        )
+
+        # トークン数の取得
+        prompt_token_count: int = get_tiktoken_count(converted_history, model_key)
+        completion_token_count: int = get_tiktoken_count(assistant_chat, model_key)
+        print(f"prompt_token_count = {prompt_token_count}")
+        print(f"completion_token_count = {completion_token_count}")
+        print(MODELS[model_key]["config"]["prompt_cost"])
+        print(MODELS[model_key]["config"]["completion_cost"])
+
+        # コストの計算
+        if not is_error:
+            total_cost = get_conversation_cost(
+                prompt_token_count,
+                completion_token_count,
+                MODELS[model_key]["config"]["prompt_cost"],
+                MODELS[model_key]["config"]["completion_cost"],
+            )
+            st.session_state.costs = total_cost
 
 
 # メイン関数を実行

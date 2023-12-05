@@ -26,6 +26,8 @@ MODELS: Dict[str, Dict[str, Any]] = {
             "api_type": os.getenv("GPT_3_5_TURBO_API_TYPE"),
             "deployment_name": os.getenv("GPT_3_5_TURBO_API_DEPLOYMENT_NAME"),
             "model_version": os.getenv("GPT_3_5_TURBO_API_MODEL_VERSION"),
+            "prompt_cost": os.getenv("GPT_3_5_PROMPT_COST"),
+            "completion_cost": os.getenv("GPT_3_5_COMPLETION_COST"),
         },
     },
     "gpt-4": {
@@ -47,6 +49,8 @@ MODELS: Dict[str, Dict[str, Any]] = {
             "api_type": os.getenv("GPT_4_API_TYPE"),
             "deployment_name": os.getenv("GPT_4_API_DEPLOYMENT_NAME"),
             "model_version": os.getenv("GPT_4_API_MODEL_VERSION"),
+            "prompt_cost": os.getenv("GPT_4_PROMPT_COST"),
+            "completion_cost": os.getenv("GPT_4_COMPLETION_COST"),
         },
     },
 }
