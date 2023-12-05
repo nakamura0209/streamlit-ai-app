@@ -7,3 +7,4 @@ pandas-stubs==2.0.3.230814
 langchain==0.0.342
 python-dotenv==1.0.0
 azure-storage-blob==12.19.0
+tiktoken==0.5.1

@@ -1,7 +1,7 @@
 # ユーザーのチャット入力を会話に追加する関数
 from logging import Logger
 import traceback
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import openai
 import streamlit as st
 from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
@@ -26,7 +26,9 @@ def add_user_chat_message(user_input: str) -> None:
 
 # アシスタントのチャット応答を生成する関数
 @log_decorator(logger)
-def generate_assistant_chat_response(model_key: str, temperature: float, llm: ModelParameters) -> bool:
+def generate_assistant_chat_response(
+    model_key: str, temperature: float, llm: ModelParameters
+) -> Tuple[bool, str, str]:
     """
     OpenAIのChat APIを使用してアシスタントのチャット応答を生成します。
 
@@ -41,13 +43,15 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
     try:
         with st.chat_message(Role.ASSISTANT.value):
             message_placeholder = st.empty()
-            full_response = ""
+            assistant_chat = ""
+            # これまでの会話履歴もアシスタントに送信する必要があるため
+            messages_with_history = [
+                {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+            ]
             # OpenAIのChat APIを呼び出して応答を生成
             for response in openai.ChatCompletion.create(
                 engine=MODELS[model_key]["config"]["deployment_name"],
-                messages=[
-                    {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
-                ],
+                messages=messages_with_history,
                 temperature=temperature,
                 max_tokens=llm.max_tokens,
                 top_p=llm.top_p,
@@ -57,27 +61,31 @@ def generate_assistant_chat_response(model_key: str, temperature: float, llm: Mo
                 stop=None,
             ):
                 if response.choices:  # type: ignore
-                    full_response += response.choices[0].delta.get("content", "")  # type: ignore
-                    message_placeholder.markdown(full_response + "▌")
-            message_placeholder.markdown(full_response)
+                    assistant_chat += response.choices[0].delta.get("content", "")  # type: ignore
+                    message_placeholder.markdown(assistant_chat + "▌")
+            message_placeholder.markdown(assistant_chat)
 
-        st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": full_response})
+        st.session_state.messages.append({"role": Role.ASSISTANT.value, "content": assistant_chat})
 
     except openai.error.RateLimitError as e:  # type: ignore
         logger.warn(traceback.format_exc())
         err_content_message = "The execution interval is too short. Wait a minute and try again."
         with st.chat_message(Role.SYSTEM.value):
             st.markdown(err_content_message)
-        return True
+        return True, "", ""
 
     except Exception as e:
         logger.warn(traceback.format_exc())
         err_content_message = "Unexpected error. Contact the administrator."
         with st.chat_message(Role.SYSTEM.value):
             st.markdown(err_content_message)
-        return True
+        return True, "", ""
 
-    return False
+    # 会話履歴のトークン数を取得するため、文字列に変換
+    converted_historys = [item["content"] for item in messages_with_history]
+    converted_history = " ".join(converted_historys)
+
+    return False, converted_history, assistant_chat
 
 
 # 会話を表示する関数
