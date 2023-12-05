@@ -22,6 +22,7 @@ from logs.log_decorator import log_decorator
 logger: Logger = set_logging("__main__")
 
 
+# メイン関数
 @log_decorator(logger)
 def main() -> None:
     # 会話生成において何かしらのエラーの発生を検知する際に使用
