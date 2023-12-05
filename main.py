@@ -1,10 +1,6 @@
 # 必要なライブラリとモジュールをインポート
 from logging import Logger
-import sys
-from typing import Any, Dict, List, Union, Tuple
 from dotenv import load_dotenv
-import openai
-import traceback
 import streamlit as st
 from data_access.conversations import (
     add_user_chat_message,
@@ -14,8 +10,7 @@ from data_access.conversations import (
 from data_access.initialize_chat_page import initialize_page_base, initialize_sidebar, select_model
 
 # モデルのパラメータと役割を定義するモジュールをインポート
-from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
-from data_source.openai_data_source import MODELS, Role
+from data_source.openai_data_source import Role
 
 from logs.app_logger import set_logging
 from logs.log_decorator import log_decorator
