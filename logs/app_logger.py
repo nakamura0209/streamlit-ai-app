@@ -47,7 +47,7 @@ def create_logging_config() -> Dict[str, Any]:
                 "stream": "ext://sys.stdout",
             },
             "azureBlobHandler": {
-                "()": AzureBlobHandler,  # 使用していないが、今後Blobのコンテナにログ出力する場合のために保持
+                "()": AzureBlobHandler,
                 "level": "INFO",
                 "formatter": "simple",
                 "connection_string": blob_connection_string,
@@ -55,7 +55,7 @@ def create_logging_config() -> Dict[str, Any]:
                 "blob_name": blob_name,
             },
             "azureApplicationInsightsHandler": {
-                "()": AzureLogHandler,
+                "()": AzureLogHandler,  # 使用していないが、今後Application Insightsにログ出力する場合のために保持
                 "level": "INFO",
                 "formatter": "simple",
                 "connection_string": app_insights_connection_string,
@@ -64,17 +64,20 @@ def create_logging_config() -> Dict[str, Any]:
         "loggers": {
             "__main__": {
                 "level": "INFO",
-                "handlers": ["consoleHandler", "azureApplicationInsightsHandler"],
+                "handlers": ["consoleHandler", "azureBlobHandler"],
+                # "handlers": ["consoleHandler", "azureApplicationInsightsHandler"],
                 "propagate": False,
             },
             "same_hierarchy": {
                 "level": "INFO",
-                "handlers": ["consoleHandler", "azureApplicationInsightsHandler"],
+                "handlers": ["consoleHandler", "azureBlobHandler"],
+                # "handlers": ["consoleHandler", "azureApplicationInsightsHandler"],
                 "propagate": False,
             },
             "lower.sub": {
                 "level": "DEBUG",
-                "handlers": ["consoleHandler", "azureApplicationInsightsHandler"],
+                "handlers": ["consoleHandler", "azureBlobHandler"],
+                # "handlers": ["consoleHandler", "azureApplicationInsightsHandler"],
                 "propagate": False,
             },
         },
