@@ -15,7 +15,7 @@ load_dotenv()
 def create_logging_config() -> Dict[str, Any]:
     """ログ設定を生成する関数"""
     # Azure Blob
-    connection_string = (
+    blob_connection_string = (
         f"DefaultEndpointsProtocol=https;"
         f"AccountName={os.getenv('STORAGE_ACCOUNT_NAME')};"
         f"AccountKey={os.getenv('STORAGE_ACCESS_KEY')};"
@@ -25,8 +25,11 @@ def create_logging_config() -> Dict[str, Any]:
     blob_name = f"logs/{os.getenv('BLOB_NAME')}"
 
     # Application Insights
-    instrumentation_key = os.getenv("APPINSIGHTS_INSTRUMENTATIONKEY")
-
+    app_insights_connection_string = (
+        f"InstrumentationKey={os.getenv('INSTRUMENTATION_KEY')};"
+        f"IngestionEndpoint={os.getenv('INGESTION_ENDPOINT')};"
+        f"LiveEndpoint={os.getenv('LIVE_ENDPOINT')}"
+    )
     return {
         "version": 1,
         "disable_existing_loggers": False,
@@ -46,7 +49,7 @@ def create_logging_config() -> Dict[str, Any]:
                 "()": AzureBlobHandler,  # 使用していないが、今後Blobのコンテナにログ出力する場合のために保持
                 "level": "INFO",
                 "formatter": "simple",
-                "connection_string": connection_string,
+                "connection_string": blob_connection_string,
                 "container_name": container_name,
                 "blob_name": blob_name,
             },
@@ -54,7 +57,7 @@ def create_logging_config() -> Dict[str, Any]:
                 "()": AzureLogHandler,
                 "level": "INFO",
                 "formatter": "simple",
-                "instrumentation_key": instrumentation_key,
+                "connection_string": app_insights_connection_string,
             },
         },
         "loggers": {
