@@ -30,6 +30,7 @@ def create_logging_config() -> Dict[str, Any]:
         f"IngestionEndpoint={os.getenv('INGESTION_ENDPOINT')};"
         f"LiveEndpoint={os.getenv('LIVE_ENDPOINT')}"
     )
+
     return {
         "version": 1,
         "disable_existing_loggers": False,

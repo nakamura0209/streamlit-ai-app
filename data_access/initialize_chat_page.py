@@ -1,7 +1,7 @@
 # サイドバーを初期化して、モデルのパラメータを設定する関数
 from logging import Logger
 import os
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 import openai
 
 import streamlit as st
@@ -12,6 +12,11 @@ from logs.log_decorator import log_decorator
 
 
 logger: Logger = set_logging("lower.sub")
+
+
+@log_decorator(logger)
+def draw_sidebar_divider():
+    st.sidebar.markdown("---")
 
 
 @log_decorator(logger)
@@ -43,11 +48,15 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     logger.info(f"User has switched to model {model_key}")
     # 会話履歴削除ボタンの追加
     clear_conversations()
-    st.sidebar.markdown("---")  # セクションの区切り線
+    draw_sidebar_divider()  # セクションの区切り線
+
+    # 会話履歴ダウンロードボタンの追加
     add_download_button_to_sidebar(st.session_state.messages)
+    draw_sidebar_divider()
+
     # コスト表示ボタンの追加
     display_total_costs()
-    st.sidebar.markdown("---")  # セクションの区切り線
+    draw_sidebar_divider()  # セクションの区切り線
 
     # セクション2: モデルパラメータ
     st.sidebar.header("Model Parameters")
@@ -181,39 +190,70 @@ def display_total_costs() -> None:
 
 
 # 会話履歴をマークダウン形式で保存する関数
-def save_conversation_to_markdown(filename: str, messages: list) -> str:
-    if not filename.endswith(".md"):
-        filename += ".md"
-    with open(filename, "w", encoding="utf-8") as file:
-        for message in messages:
-            role = message["role"]
-            content = message["content"]
-            if role == Role.USER.value:
-                file.write(f"**You:** {content}\n\n")
-            elif role == Role.ASSISTANT.value:
-                file.write(f"**Assistant:** {content}\n\n")
-            else:
-                file.write(f"{content}\n\n")
-    return filename
+@log_decorator(logger)
+def save_conversation_to_markdown(filename: str, messages: List[Dict[str, str]]) -> str:
+    """
+    指定された会話履歴をマークダウン形式でファイルに保存します。
+
+    Parameters:
+    filename (str): 保存するファイルの名前。".md" で終わっていない場合は、拡張子が追加されます。
+    messages (List[Dict[str, str]]): 会話の各メッージを含む辞書のリスト。
+
+    Returns:
+    str: 保存されたファイルの名前。
+
+    Raises:
+    IOError: ファイルの書き込みに失敗した場合に発生します。
+    """
+    markdown_filename = f"{filename}.md" if not filename.endswith(".md") else filename
+
+    # マークダウン形式のテキストを生成
+    markdown_text = ""
+    for message in messages:
+        role = message.get("role")
+        content = message.get("content", "")
+        prefix = f"**{role.title()}:** " if role in (Role.USER.value, Role.ASSISTANT.value) else ""
+        markdown_text += f"{prefix}{content}\n\n"
+
+    # ファイルに書き込み
+    with open(markdown_filename, "w", encoding="utf-8") as file:
+        file.write(markdown_text)
+
+    return markdown_filename
 
 
-# ダウンロードボタンとファイル名入力フォームをサイドバーに追加する関数
-def add_download_button_to_sidebar(messages: list):
+# Streamlitを使用してサイドバーにダウンロード機能を追加する関数
+@log_decorator(logger)
+def add_download_button_to_sidebar(messages: List[Dict[str, str]]):
+    """
+    サイドバーにダウンロードボタンとファイル名入力フォームを追加する。
+
+    この関数はStreamlitを使用して、ユーザーが会話履歴をダウンロードできるようにサイドバーにセクションを追加する。
+    ユーザーはダウンロードするファイル名を入力し、'Generate History Log'ボタンをクリックすると、
+    会話がMarkdownファイルに保存され、ダウンロードボタンが表示される。
+
+    Parameters:
+    - messages (List[Dict[str, str]]): 会話の各メッセージの詳細を含む辞書のリスト。
+    """
     with st.sidebar:
         st.write("## Download Conversation")
-        filename = st.text_input("Enter filename for download:", value="conversation")
-        download_md_button = st.button("Generate History Log")
-        if download_md_button:
+        default_filename = "conversation"
+        filename = st.text_input("Enter filename for download:", value=default_filename)
+
+        # ユーザーが'Generate History Log'ボタンをクリックした場合の処理
+        if st.button("Generate History Log"):
+            # 会話が存在するか確認（初期化時の空メッセージを除く）
             if len(messages) > 1:
-                filename_md = save_conversation_to_markdown(filename, messages)
-                with open(filename_md, "rb") as file:
-                    btn = st.download_button(
+                # 会話をMarkdownファイルに保存し、ダウンロードボタンを表示
+                markdown_filename = save_conversation_to_markdown(filename, messages)
+                with open(markdown_filename, "rb") as file:
+                    st.download_button(
                         label="Download",
                         data=file,
-                        file_name=filename_md,
+                        file_name=markdown_filename,
                         mime="text/markdown",
                     )
                 # ダウンロード後にファイルを削除
-                os.remove(filename_md)
+                os.remove(markdown_filename)
             else:
-                st.warning("No chat")
+                st.warning("No conversation to download.")
