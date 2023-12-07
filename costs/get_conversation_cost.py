@@ -1,4 +1,5 @@
 from decimal import Decimal
+import decimal
 from logging import Logger
 from logs.app_logger import set_logging
 
@@ -31,12 +32,16 @@ def get_conversation_cost(
         Decimal: 計算された会話の総コスト。
 
     """
-    # トークン数に応じたコストを計算
-    total_prompt_cost: Decimal = prompt_token_count * Decimal(prompt_cost)
-    total_completion_cost: Decimal = completion_token_count * Decimal(completion_cost)
+    # 負のトークン数をチェック
+    if prompt_token_count < 0 or completion_token_count < 0:
+        raise ValueError("Token counts cannot be negative")
 
-    logger.debug(f"total_prompt_cost = {total_prompt_cost}")
-    logger.debug(f"total_completion_cost = {total_completion_cost}")
+    # 有効な数値であるかをチェック
+    try:
+        total_prompt_cost: Decimal = prompt_token_count * Decimal(prompt_cost)
+        total_completion_cost: Decimal = completion_token_count * Decimal(completion_cost)
+    except decimal.InvalidOperation as e:
+        raise ValueError("Invalid cost value") from e
 
     # 合計コストを計算
     total_cost: Decimal = total_prompt_cost + total_completion_cost
