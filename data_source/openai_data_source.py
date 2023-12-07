@@ -1,7 +1,8 @@
-from enum import Enum
+from enum import Enum, auto
 import os
 from typing import Any, Dict, Final
 from dotenv import load_dotenv
+from openai import ChatCompletion
 
 load_dotenv()
 
@@ -60,3 +61,13 @@ class Role(Enum):
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
+
+
+class BasePage(Enum):
+    CHAT = "Chat"
+    PDF_QA = "PDF_QA"
+
+
+class PDFOperateOptions(Enum):
+    UPLOAD = "PDF Upload"
+    QUESTION = "Ask My PDF(s)"

@@ -22,7 +22,6 @@ class ChatSession:
     @log_decorator(logger)
     def initialize_chat_page_element(self) -> Tuple[ModelParameters, str]:
         # ページの基本構成を初期化
-        st.set_page_config(page_title="Stream-AI-Chat", page_icon="🤖")
         st.header("Stream-AI-Chat")
         st.sidebar.title("Options")
 
