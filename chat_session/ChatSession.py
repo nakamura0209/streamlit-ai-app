@@ -4,7 +4,7 @@ import traceback
 from typing import Any, Dict, List, Tuple
 import openai
 import streamlit as st
-from data_access.initialize_chat_page import initialize_sidebar, select_model
+from chat_session.initialize_chat_page import initialize_sidebar, select_model
 from data_source.langchain.lang_chain_chat_model_factory import ModelParameters
 from data_source.openai_data_source import MODELS, Role
 from logs.app_logger import set_logging
