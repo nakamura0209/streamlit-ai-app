@@ -7,11 +7,9 @@ from costs.calculate_cost import calculate_cost
 from logs.app_logger import set_logging
 from logs.log_decorator import log_decorator
 
-# ロギング設定の読み込み
 logger: Logger = set_logging("__main__")
 
 
-# メイン関数
 @log_decorator(logger)
 def main() -> None:
     # 会話生成において何かしらのエラーの発生を検知する際に使用
@@ -37,6 +35,5 @@ def main() -> None:
         calculate_cost(converted_history, assistant_chat, model_version, is_error)
 
 
-# メイン関数を実行
 if __name__ == "__main__":
     main()
