@@ -9,4 +9,5 @@ python-dotenv==1.0.0
 azure-storage-blob==12.19.0
 tiktoken==0.5.1
 opencensus-ext-azure==1.1.12
-pytest7.4.3
+pytest==7.4.3
+pytest-cov==4.1.0
