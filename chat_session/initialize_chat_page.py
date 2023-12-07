@@ -134,7 +134,7 @@ def display_total_costs() -> None:
 # モデルを選択し、パラメータを設定する関数
 @log_decorator(logger)
 def select_model(
-    model_key: str,
+    model_version: str,
     max_tokens: int,
     temperature: float,
     top_p: float,
@@ -145,13 +145,13 @@ def select_model(
     言語モデルを選択し、そのパラメータを設定します。
 
     Args:
-        model_key (str): 選択された言語モデルのキー。
+        model_version (str): 選択された言語モデルのキー。
         temperature (float): テキスト生成のためのtemperatureパラメータ。
 
     Returns:
         ModelParameters: 選択された言語モデルのパラメータ。
     """
-    model_config: Dict[str, Any] = MODELS[model_key]["config"]
+    model_config: Dict[str, Any] = MODELS[model_version]["config"]
 
     # OpenAI APIの設定をセッションステートに保存
     st.session_state["openai_model"] = model_config["model_version"]
@@ -172,17 +172,9 @@ def select_model(
         deployment_name=model_config["deployment_name"],
     )
 
-    st.info(f"{model_key} is selected")
+    st.info(f"{model_version} is selected")
 
     return language_model_parameters
-
-
-@log_decorator(logger)
-def initialize_page_base() -> None:
-    """基本的なページ構造をセットアップ"""
-    st.set_page_config(page_title="Stream-AI-Chat", page_icon="🤖")
-    st.header("Stream-AI-Chat")
-    st.sidebar.title("Options")
 
 
 @log_decorator(logger)
@@ -202,8 +194,8 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
     # セクション1: モデル選択とクリアボタン
     st.sidebar.header("Model Selection")  # セクションのヘッダー
     # モデルの選択
-    model_key: str = st.sidebar.radio("Select a model:", list(MODELS.keys()))  # type: ignore
-    logger.info(f"User has switched to model {model_key}")
+    model_version: str = st.sidebar.radio("Select a model:", list(MODELS.keys()))  # type: ignore
+    logger.info(f"User has switched to model {model_version}")
     # 会話履歴削除ボタンの追加
     clear_conversations()
     draw_sidebar_divider()  # セクションの区切り線
@@ -218,7 +210,7 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
 
     # セクション2: モデルパラメータ
     st.sidebar.header("Model Parameters")
-    model_parameter = MODELS[model_key]["parameter"]
+    model_parameter = MODELS[model_version]["parameter"]
 
     max_tokens = st.sidebar.slider(
         "max_tokens: ",  # 最大トークン数
@@ -256,4 +248,4 @@ def initialize_sidebar() -> Tuple[Union[str, Any], int, float, float, float, flo
         step=0.1,
     )
 
-    return model_key, max_tokens, temperature, top_p, frequency_penalty, presence_penalty
+    return model_version, max_tokens, temperature, top_p, frequency_penalty, presence_penalty
