@@ -10,7 +10,7 @@ def test_get_tiktoken_count_with_gpt_3_5_returns_expected_token_count():
 
 
 def test_get_tiktoken_count_with_gpt_4_returns_expected_token_count():
-    token_count = get_tiktoken_count("こんにちは", "gpt-4")
+    token_count = get_tiktoken_count("こんにちは", "gpt-4-turbo")
     assert token_count == 1
 
 
