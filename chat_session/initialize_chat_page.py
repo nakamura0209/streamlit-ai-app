@@ -1,4 +1,5 @@
 # サイドバーを初期化して、モデルのパラメータを設定する関数
+import datetime
 from logging import Logger
 import os
 from typing import Any, Dict, List, Tuple, Union
@@ -35,7 +36,11 @@ def save_conversation_to_markdown(filename: str, messages: List[Dict[str, str]])
     Raises:
     IOError: ファイルの書き込みに失敗した場合に発生します。
     """
-    markdown_filename = f"{filename}.md" if not filename.endswith(".md") else filename
+    markdown_filename = (
+        f"{datetime.datetime.now().strftime('%Y%m%d')}_{filename}.md"
+        if not filename.endswith(".md")
+        else filename
+    )
 
     # マークダウン形式のテキストを生成
     markdown_text = ""
